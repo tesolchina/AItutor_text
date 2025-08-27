@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Audio Tutor UI</title>
+    <style>
+        :root {
+            --primary-color: #2196F3;
+            --secondary-color: #4CAF50;
+            --accent-color: #FF9800;
+            --danger-color: #F44336;
+            --light-bg: #f0f2f5;
+            --dark-text: #333;
+            --light-text: #fff;
+            --border-color: #ddd;
+        }
+        
+        body { 
+            font-family: Arial, sans-serif; 
+            text-align: center; 
+            margin: 0; 
+            padding: 20px;
+            background-color: var(--light-bg);
+            color: var(--dark-text);
+        }
+        
+        #app-container {
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+        }
+        
+        #settings-panel {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 380px;
+            height: 100vh;
+            background: white;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+            z-index: 1000;
+            padding: 20px;
+            overflow-y: auto;
+            transition: right 0.3s ease;
+        }
+        
+        #settings-panel.open {
+            right: 0;
+        }
+        
+        #settings-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 1001;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        #settings-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: transparent;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--dark-text);
+        }
+        
+        .settings-section {
+            margin-bottom: 30px;
+            text-align: left;
+        }
+        
+        .settings-section h3 {
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        
+        #system-prompt {
+            width: 100%;
+            height: 200px;
+            font-family: monospace;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            margin-bottom: 10px;
+            background-color: white;
+        }
+        
+        #chat-container {
+            width: 90%;
+            max-width: 600px;
+            height: 400px;
+            margin: 20px auto;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        #transcript {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 15px;
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* WeChat-style message bubbles */
+        .message-row {
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            max-width: 80%;
+        }
+        
+        .user-row {
+            align-self: flex-end;
+        }
+        
+        .tutor-row {
+            align-self: flex-start;
+        }
+        
+        .message-bubble {
+            padding: 10px 15px;
+            border-radius: 18px;
+            margin-bottom: 5px;
+            position: relative;
+            word-wrap: break-word;
+            line-height: 1.4;
+        }
+        
+        .user-bubble {
+            background-color: #95ec69;
+            border-top-right-radius: 3px;
+        }
+        
+        .tutor-bubble {
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-top-left-radius: 3px;
+        }
+        
+        .message-meta {
+            font-size: 11px;
+            color: #999;
+            margin-top: 2px;
+            padding: 0 5px;
+        }
+        
+        /* Avatar container */
+        #avatar-container {
+            position: relative;
+            height: 150px;
+            margin: 0 auto 20px auto;
+        }
+        
+        #owl-icon {
+            font-size: 100px;
+            position: relative;
+            z-index: 10;
+        }
+        
+        /* Animation states */
+        .owl-idle {
+            animation: gentle-float 3s infinite ease-in-out;
+        }
+        
+        .owl-listening {
+            animation: gentle-float 3s infinite ease-in-out;
+        }
+        
+        .owl-thinking {
+            animation: thinking 1s infinite ease-in-out;
+        }
+        
+        .owl-speaking {
+            animation: bounce 0.8s infinite;
+        }
+        
+        /* Status indicator */
+        #status-indicator {
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 14px;
+            background-color: rgba(0,0,0,0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            z-index: 20;
+        }
+        
+        /* Sound waves (for listening) */
+        .sound-waves {
+            position: absolute;
+            top: 40px;
+            right: -15px;
+            width: 30px;
+            height: 30px;
+            z-index: 5;
+        }
+        
+        .wave {
+            position: absolute;
+            background: rgba(33, 150, 243, 0.3);
+            border-radius: 50%;
+            opacity: 0;
+        }
+        
+        .wave-1 {
+            width: 20px;
+            height: 20px;
+            animation: wave 2s infinite ease-out;
+        }
+        
+        .wave-2 {
+            width: 30px;
+            height: 30px;
+            animation: wave 2s infinite 0.5s ease-out;
+        }
+        
+        .wave-3 {
+            width: 40px;
+            height: 40px;
+            animation: wave 2s infinite 1s ease-out;
+        }
+        
+        /* Thinking animation (dots) */
+        .thinking-dots {
+            position: absolute;
+            left: 70px;
+            top: 30px;
+            display: none;
+            z-index: 5;
+        }
+        
+        .dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background-color: #333;
+            border-radius: 50%;
+            margin: 0 2px;
+        }
+        
+        .dot-1 { animation: blink 1.4s infinite 0.2s; }
+        .dot-2 { animation: blink 1.4s infinite 0.4s; }
+        .dot-3 { animation: blink 1.4s infinite 0.6s; }
+        
+        /* Interim results display */
+        #interim-results {
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 20px;
+            max-width: 80%;
+            display: none;
+            z-index: 30;
+            text-align: center;
+        }
+        
+        /* Copy to clipboard modal */
+        #clipboard-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            width: 80%;
+            max-width: 600px;
+            max-height: 80vh;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        #chat-text {
+            width: 100%;
+            height: 300px;
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            resize: none;
+            font-family: monospace;
+        }
+        
+        /* Control buttons */
+        #bottom-controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        button {
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 30px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+        
+        .btn-accent {
+            background-color: var(--accent-color);
+            color: white;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        button:active {
+            transform: translateY(1px);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        /* Settings buttons container */
+        .settings-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        /* Animations */
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        @keyframes gentle-float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        
+        @keyframes thinking {
+            0%, 100% { transform: rotate(-5deg); }
+            50% { transform: rotate(5deg); }
+        }
+        
+        @keyframes wave {
+            0% { transform: scale(0.5); opacity: 0.5; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div id="app-container">
+        <h1>English Tutor Chat</h1>
+        
+        <button id="settings-toggle">⚙️</button>
+        
+        <div id="settings-panel">
+            <button id="settings-close">×</button>
+            <h2>Settings</h2>
+            
+            <div class="settings-section">
+                <h3>Language</h3>
+                <select id="language-selector">
+                    <option value="en-US">English</option>
+                    <option value="zh-CN">Mandarin Chinese</option>
+                    <option value="zh-HK">Cantonese</option>
+                </select>
+                <p>Select the language you'll be speaking in.</p>
+            </div>
+            
+            <div class="settings-section">
+                <h3>Model Selection</h3>
+                <select id="model-selector">
+                    <!-- Will be populated from backend -->
+                </select>
+                <p>Select a faster model for more responsive conversation. Slower models may provide more detailed responses.</p>
+            </div>
+            
+            <div class="settings-section">
+                <h3>System Prompt</h3>
+                <textarea id="system-prompt"></textarea>
+                <button id="save-prompt" class="btn-primary">Save Prompt</button>
+                <p>Customize how the tutor responds and what style or tone it uses.</p>
+            </div>
+            
+            <div class="settings-section">
+                <h3>Export Chat</h3>
+                <div class="settings-buttons">
+                    <button id="export-chat" class="btn-accent">Export as Markdown</button>
+                    <button id="copy-chat" class="btn-primary">Copy to Clipboard</button>
+                </div>
+                <p>Save your conversation for future reference.</p>
+            </div>
+        </div>
+        
+        <div id="avatar-container">
+            <div id="owl-icon" class="owl-idle">🦉</div>
+            <div id="status-indicator">Idle</div>
+            
+            <!-- Sound waves (for listening) -->
+            <div class="sound-waves">
+                <div class="wave wave-1"></div>
+                <div class="wave wave-2"></div>
+                <div class="wave wave-3"></div>
+            </div>
+            
+            <!-- Thinking animation -->
+            <div class="thinking-dots">
+                <span class="dot dot-1"></span>
+                <span class="dot dot-2"></span>
+                <span class="dot dot-3"></span>
+            </div>
+        </div>
+        
+        <!-- Interim results display -->
+        <div id="interim-results"></div>
+        
+        <div id="chat-container">
+            <div id="transcript"></div>
+        </div>
+        
+        <div id="bottom-controls">
+            <button id="startBtn" class="btn-primary">Start Talking</button>
+            <button id="stopTalkingBtn" class="btn-danger" style="display: none;">Stop Talking</button>
+            <button id="stopSpeakingBtn" class="btn-accent" disabled>Stop Tutor Speaking</button>
+        </div>
+        
+        <!-- Clipboard Copy Modal -->
+        <div id="clipboard-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 style="margin: 0;">Chat History</h3>
+                    <button id="close-modal" class="modal-close">×</button>
+                </div>
+                <textarea id="chat-text" readonly></textarea>
+                <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                    <button id="copy-to-clipboard" class="btn-primary">Copy to Clipboard</button>
+                </div>
+            </div>
+        </div>
+    </div>
+        <script>
+        // DOM Elements
+        const startBtn = document.getElementById('startBtn');
+        const stopTalkingBtn = document.getElementById('stopTalkingBtn');
+        const stopSpeakingBtn = document.getElementById('stopSpeakingBtn');
+        const transcriptArea = document.getElementById('transcript');
+        const owlIcon = document.getElementById('owl-icon');
+        const statusIndicator = document.getElementById('status-indicator');
+        const soundWaves = document.querySelector('.sound-waves');
+        const thinkingDots = document.querySelector('.thinking-dots');
+        const modelSelector = document.getElementById('model-selector');
+        const languageSelector = document.getElementById('language-selector');
+        const systemPromptInput = document.getElementById('system-prompt');
+        const savePromptBtn = document.getElementById('save-prompt');
+        const exportChatBtn = document.getElementById('export-chat');
+        const copyChatBtn = document.getElementById('copy-chat');
+        const settingsToggle = document.getElementById('settings-toggle');
+        const settingsPanel = document.getElementById('settings-panel');
+        const settingsClose = document.getElementById('settings-close');
+        const interimResults = document.getElementById('interim-results');
+        const clipboardModal = document.getElementById('clipboard-modal');
+        const chatText = document.getElementById('chat-text');
+        const copyBtn = document.getElementById('copy-to-clipboard');
+        const closeModalBtn = document.getElementById('close-modal');
+        
+        // App state
+        let recognition;
+        let isListening = false;
+        let isTutorSpeaking = false;
+        let isProcessing = false;
+        let startTime = 0;
+        let selectedModel = 'google/gemini-2.5-flash-lite'; // Default model
+        let selectedLanguage = 'en-US'; // Default language
+        let chatHistory = []; // To store conversation history for export
+        let recognitionTranscript = ''; // Current speech recognition text
+        let allRecognitionResults = []; // Array to store all final recognition results
+        
+        // Settings panel toggle
+        settingsToggle.addEventListener('click', () => {
+            settingsPanel.classList.add('open');
+        });
+        
+        settingsClose.addEventListener('click', () => {
+            settingsPanel.classList.remove('open');
+        });
+        
+        // Language selection change
+        languageSelector.addEventListener('change', () => {
+            selectedLanguage = languageSelector.value;
+            console.log('Selected language:', selectedLanguage);
+            
+            // Update recognition language
+            if (recognition) {
+                recognition.lang = selectedLanguage;
+            }
+            
+            // Update status indicator
+            const langCode = selectedLanguage.split('-')[0].toUpperCase();
+            statusIndicator.textContent = `Idle (${langCode})`;
+        });
+        
+        // Enhanced speech recognition setup with improved transcript handling
+        function setupSpeechRecognition() {
+            if (!('webkitSpeechRecognition' in window)) {
+                alert('Your browser does not support speech recognition. Please use Chrome for best results.');
+                return;
+            }
+            
+            recognition = new webkitSpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = languageSelector.value;
+            
+            // Clear results when starting
+            allRecognitionResults = [];
+            
+            recognition.onresult = function(event) {
+                let interimTranscript = '';
+                
+                // Store ALL final results in our array
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        allRecognitionResults.push(event.results[i][0].transcript);
+                        console.log("Added final result:", event.results[i][0].transcript);
+                    } else {
+                        interimTranscript += event.results[i][0].transcript;
+                    }
+                }
+                
+                // Show interim results
+                if (interimTranscript !== '') {
+                    interimResults.textContent = interimTranscript;
+                    interimResults.style.display = 'block';
+                }
+                
+                // Update the full transcript from all results
+                recognitionTranscript = allRecognitionResults.join(' ');
+                console.log("Current full transcript:", recognitionTranscript);
+            };
+            
+            recognition.onerror = function(event) {
+                console.error("Recognition error:", event.error);
+                if (event.error === 'no-speech') {
+                    statusIndicator.textContent = 'No speech detected. Please try again.';
+                } else if (event.error === 'audio-capture') {
+                    statusIndicator.textContent = 'Microphone issue. Please check your device.';
+                } else if (event.error === 'not-allowed') {
+                    statusIndicator.textContent = 'Microphone access denied. Please allow microphone use.';
+                }
+            };
+            
+            recognition.onend = function() {
+                if (isListening) {
+                    // If we're supposed to be listening but recognition stopped, restart it
+                    try {
+                        recognition.start();
+                        console.log("Recognition restarted automatically");
+                    } catch (e) {
+                        console.error("Failed to restart recognition:", e);
+                        isListening = false;
+                        stopTalkingBtn.style.display = 'none';
+                        startBtn.style.display = 'inline-block';
+                        interimResults.style.display = 'none';
+                    }
+                } else {
+                    // Normal end of recognition
+                    stopTalkingBtn.style.display = 'none';
+                    startBtn.style.display = 'inline-block';
+                    interimResults.style.display = 'none';
+                }
+            };
+        }
+        
+        // Load available models
+        async function loadModels() {
+            try {
+                const response = await fetch('/models');
+                const models = await response.json();
+                
+                // Clear existing options
+                modelSelector.innerHTML = '';
+                
+                // Add models to selector
+                models.forEach(model => {
+                    const option = document.createElement('option');
+                    option.value = model.id;
+                    option.textContent = model.name;
+                    option.selected = model.isDefault;
+                    modelSelector.appendChild(option);
+                });
+                
+                // Set the selected model
+                selectedModel = modelSelector.value;
+            } catch (error) {
+                console.error('Error loading models:', error);
+                alert('Failed to load available models. Using default model instead.');
+            }
+        }
+        
+        // Load system prompt
+        async function loadSystemPrompt() {
+            try {
+                const response = await fetch('/system-prompt');
+                const data = await response.json();
+                systemPromptInput.value = data.prompt;
+            } catch (error) {
+                console.error('Error loading system prompt:', error);
+                alert('Failed to load system prompt. Please check console for details.');
+            }
+        }
+        
+        // Save system prompt
+        savePromptBtn.addEventListener('click', async () => {
+            try {
+                // Show status in button
+                savePromptBtn.textContent = 'Saving...';
+                savePromptBtn.disabled = true;
+                
+                const response = await fetch('/system-prompt', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt: systemPromptInput.value })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    savePromptBtn.textContent = 'Saved!';
+                    setTimeout(() => {
+                        savePromptBtn.textContent = 'Save Prompt';
+                        savePromptBtn.disabled = false;
+                    }, 2000);
+                } else {
+                    throw new Error(result.error || 'Unknown error');
+                }
+            } catch (error) {
+                console.error('Error saving system prompt:', error);
+                alert(`Error saving prompt: ${error.message}`);
+                savePromptBtn.textContent = 'Save Prompt';
+                savePromptBtn.disabled = false;
+            }
+        });
+        
+        // Export chat history
+        exportChatBtn.addEventListener('click', async () => {
+            if (chatHistory.length === 0) {
+                alert('No chat history to export.');
+                return;
+            }
+            
+            try {
+                // Show status in button
+                exportChatBtn.textContent = 'Exporting...';
+                exportChatBtn.disabled = true;
+                
+                // Create a download link for the markdown file
+                const response = await fetch('/export', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ history: chatHistory })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Server returned an error');
+                }
+                
+                // Get the blob from the response
+                const blob = await response.blob();
+                
+                // Create a download link
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = 'chat_history.md';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+            } catch (error) {
+                console.error('Error exporting chat:', error);
+                alert(`Error exporting chat: ${error.message}`);
+            } finally {
+                exportChatBtn.textContent = 'Export as Markdown';
+                exportChatBtn.disabled = false;
+            }
+        });
+        
+        // Copy to clipboard functionality
+        copyChatBtn.addEventListener('click', () => {
+            if (chatHistory.length === 0) {
+                alert('No chat history to copy.');
+                return;
+            }
+            
+            // Generate formatted text
+            let formattedText = "# Audio Tutor Chat History\n\n";
+            formattedText += `Exported on: ${new Date().toLocaleString()}\n\n`;
+            
+            chatHistory.forEach(entry => {
+                formattedText += `## ${entry.speaker}\n\n`;
+                formattedText += `${entry.message}\n\n`;
+                formattedText += `Duration: ${entry.duration}s | Words: ${entry.wordCount}\n\n`;
+                formattedText += "---\n\n";
+            });
+            
+            chatText.value = formattedText;
+            clipboardModal.style.display = 'flex';
+        });
+        
+        // Copy to clipboard
+        copyBtn.addEventListener('click', () => {
+            chatText.select();
+            navigator.clipboard.writeText(chatText.value)
+                .then(() => {
+                    copyBtn.textContent = 'Copied!';
+                    setTimeout(() => {
+                        copyBtn.textContent = 'Copy to Clipboard';
+                    }, 2000);
+                })
+                .catch(err => {
+                    console.error('Failed to copy: ', err);
+                    alert('Failed to copy to clipboard. See console for details.');
+                });
+        });
+        
+        // Close modal
+        closeModalBtn.addEventListener('click', () => {
+            clipboardModal.style.display = 'none';
+        });
+        
+        // Also close modal if clicking outside
+        clipboardModal.addEventListener('click', (e) => {
+            if (e.target === clipboardModal) {
+                clipboardModal.style.display = 'none';
+            }
+        });
+        
+        // Model selection change
+        modelSelector.addEventListener('change', () => {
+            selectedModel = modelSelector.value;
+            console.log('Selected model:', selectedModel);
+        });
+        
+        // Set owl state and animation
+        function setOwlState(state) {
+            // Remove all state classes
+            owlIcon.classList.remove('owl-idle', 'owl-listening', 'owl-thinking', 'owl-speaking');
+            
+            // Hide all state indicators
+            soundWaves.style.display = 'none';
+            thinkingDots.style.display = 'none';
+            
+            // Set new state
+            switch(state) {
+                case 'idle':
+                    owlIcon.classList.add('owl-idle');
+                    // Show the current language in the status
+                    const langCode = selectedLanguage.split('-')[0].toUpperCase();
+                    statusIndicator.textContent = `Idle (${langCode})`;
+                    break;
+                case 'listening':
+                    owlIcon.classList.add('owl-listening');
+                    soundWaves.style.display = 'block';
+                    statusIndicator.textContent = 'Listening...';
+                    break;
+                case 'thinking':
+                    owlIcon.classList.add('owl-thinking');
+                    thinkingDots.style.display = 'block';
+                    statusIndicator.textContent = 'Thinking...';
+                    break;
+                case 'speaking':
+                    owlIcon.classList.add('owl-speaking');
+                    statusIndicator.textContent = 'Speaking...';
+                    break;
+            }
+        }
+        
+        // Start listening function
+        function startListening() {
+            if (!isListening && !isProcessing) {
+                // Reset the recognition transcript and results array
+                recognitionTranscript = '';
+                allRecognitionResults = [];
+                
+                try {
+                    // Ensure recognition is using the current language
+                    if (recognition) {
+                        recognition.lang = selectedLanguage;
+                    }
+                    
+                    recognition.start();
+                    startBtn.style.display = 'none';
+                    stopTalkingBtn.style.display = 'inline-block';
+                    isListening = true;
+                    
+                    // Change owl state
+                    setOwlState('listening');
+                    
+                    // Show the interim results div
+                    interimResults.style.display = 'block';
+                    
+                    // Start the timer
+                    startTime = Date.now();
+                } catch (error) {
+                    console.error("Recognition error:", error);
+                    // If already started, stop and restart
+                    recognition.stop();
+                    setTimeout(() => {
+                        startListening();
+                    }, 200);
+                }
+            }
+        }
+        
+        // Stop listening function and process input
+        function stopListening() {
+            if (isListening) {
+                recognition.stop();
+                stopTalkingBtn.style.display = 'none';
+                startBtn.style.display = 'inline-block';
+                isListening = false;
+                
+                // Hide the interim results
+                interimResults.style.display = 'none';
+                
+                // Set state to thinking while processing
+                isProcessing = true;
+                setOwlState('thinking');
+            }
+        }
+        
+        // Function to count words in a string
+        function countWords(str) {
+            return str.trim().split(/\s+/).length;
+        }
+        
+        // Button event listeners
+        startBtn.addEventListener('click', startListening);
+        stopTalkingBtn.addEventListener('click', () => {
+            stopListening();
+            // Use the last result from recognition
+            processLastRecognitionResult();
+        });
+        
+        // Process the last recognition result
+        function processLastRecognitionResult() {
+            console.log("Processing with transcript value:", JSON.stringify(recognitionTranscript));
+            
+            const userInput = recognitionTranscript || "Sorry, I didn't catch that. Could you try again?";
+            const duration = Math.round((Date.now() - startTime) / 1000);
+            const wordCount = countWords(userInput);
+            
+            // Add user message to transcript
+            addMessageToTranscript('You', userInput, true, duration, wordCount);
+            
+            // Add to chat history
+            chatHistory.push({
+                speaker: 'You',
+                message: userInput,
+                duration: duration,
+                wordCount: wordCount,
+                timestamp: new Date().toISOString()
+            });
+            
+            // Clear for next input
+            recognitionTranscript = '';
+            allRecognitionResults = [];
+            
+            // Get response from tutor using the selected model and language
+            getLLMResponse(userInput, selectedModel, selectedLanguage).then(llmResponse => {
+                // Change state from thinking to speaking
+                isProcessing = false;
+                
+                // Add tutor response to transcript
+                const tutorWordCount = countWords(llmResponse);
+                addMessageToTranscript('Tutor', llmResponse, false, 0, tutorWordCount);
+                
+                // Add to chat history
+                chatHistory.push({
+                    speaker: 'Tutor',
+                    message: llmResponse,
+                    duration: 0, // Will be updated after speaking
+                    wordCount: tutorWordCount,
+                    timestamp: new Date().toISOString()
+                });
+                
+                // Speak the response
+                speakResponse(llmResponse);
+            });
+        }
+        
+        // Function to add message to transcript with proper formatting
+        function addMessageToTranscript(speaker, message, isUser, duration, wordCount) {
+            const messageRow = document.createElement('div');
+            messageRow.className = isUser ? 'message-row user-row' : 'message-row tutor-row';
+            
+            const messageBubble = document.createElement('div');
+            messageBubble.className = isUser ? 'message-bubble user-bubble' : 'message-bubble tutor-bubble';
+            messageBubble.textContent = message;
+            
+            const messageMeta = document.createElement('div');
+            messageMeta.className = 'message-meta';
+            
+            // Add word count and duration (if available)
+            let metaText = `${wordCount} words`;
+            if (duration > 0) {
+                metaText += ` • ${duration} seconds`;
+            }
+            messageMeta.textContent = metaText;
+            
+            messageRow.appendChild(messageBubble);
+            messageRow.appendChild(messageMeta);
+            transcriptArea.appendChild(messageRow);
+            
+            // Scroll to bottom
+            transcriptArea.scrollTop = transcriptArea.scrollHeight;
+        }
+        
+        // Function to call backend /chat endpoint with selected model and language
+        async function getLLMResponse(input, model, language) {
+            try {
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        user_input: input,
+                        model: model,
+                        language: language
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Server returned an error');
+                }
+                
+                const data = await response.json();
+                return data.response || data.error;
+            } catch (error) {
+                console.error('Error getting LLM response:', error);
+                return `Sorry, there was an error processing your request: ${error.message}`;
+            }
+        }
+        
+        // TTS using browser SpeechSynthesis
+        function speakResponse(text) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            
+            // Set voice language based on detected text language or selected language
+            // For simple detection: if text contains Chinese characters, use Chinese voice
+            const hasChinese = /[\u4e00-\u9fff]/.test(text);
+            if (hasChinese) {
+                utterance.lang = 'zh-CN';
+            } else {
+                utterance.lang = 'en-US';
+            }
+            
+            // Try to find a good voice
+            const voices = speechSynthesis.getVoices();
+            let preferredVoice;
+            
+            if (hasChinese) {
+                preferredVoice = voices.find(voice => 
+                    voice.lang.includes('zh') && voice.name.includes('Google')
+                ) || voices.find(voice => voice.lang.includes('zh'));
+            } else {
+                preferredVoice = voices.find(voice => 
+                    voice.lang.includes('en') && voice.name.includes('Google') && voice.name.includes('Female')
+                ) || voices.find(voice => 
+                    voice.lang.includes('en') && voice.name.includes('Google')
+                ) || voices.find(voice => voice.lang.includes('en'));
+            }
+            
+            if (preferredVoice) {
+                utterance.voice = preferredVoice;
+                console.log(`Using voice: ${preferredVoice.name} (${preferredVoice.lang})`);
+            }
+            
+            // Start tutor speaking animation
+            setOwlState('speaking');
+            stopSpeakingBtn.disabled = false;
+            isTutorSpeaking = true;
+            
+            // Start timer for tutor
+            startTime = Date.now();
+            
+            // Handle speech end
+            utterance.onend = finishTutorSpeaking;
+            
+            speechSynthesis.speak(utterance);
+        }
+        
+        // Function to handle end of tutor speaking
+        function finishTutorSpeaking() {
+            setOwlState('idle');
+            stopSpeakingBtn.disabled = true;
+            isTutorSpeaking = false;
+            
+            // Update the duration in the last tutor message and in chat history
+            const duration = Math.round((Date.now() - startTime) / 1000);
+            
+            // Update the displayed meta text
+            const tutorMeta = transcriptArea.querySelector('.tutor-row:last-child .message-meta');
+            if (tutorMeta) {
+                const currentText = tutorMeta.textContent;
+                tutorMeta.textContent = currentText + ` • ${duration} seconds`;
+            }
+            
+            // Update the chat history entry
+            if (chatHistory.length > 0 && chatHistory[chatHistory.length - 1].speaker === 'Tutor') {
+                chatHistory[chatHistory.length - 1].duration = duration;
+            }
+        }
+        
+        // Stop speaking button
+        stopSpeakingBtn.addEventListener('click', () => {
+            speechSynthesis.cancel();
+            finishTutorSpeaking();
+        });
+        
+        // Initialize voices when they become available
+        speechSynthesis.onvoiceschanged = () => {
+            console.log("Voices loaded:", speechSynthesis.getVoices().length);
+        };
+        
+        // Load initial data
+        window.addEventListener('DOMContentLoaded', async () => {
+            // Initialize owl to idle state
+            setOwlState('idle');
+            
+            // Setup speech recognition
+            setupSpeechRecognition();
+            
+            // Load models and system prompt
+            await loadModels();
+            await loadSystemPrompt();
+        });
+    </script>
+</body>
+</html>

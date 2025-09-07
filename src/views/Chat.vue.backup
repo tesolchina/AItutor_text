@@ -155,7 +155,7 @@
         class="chat-header flex justify-between items-center p-5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white"
       >
         <div>
-          <h1 class="text-xl font-bold">{{ selectedBot.name }}</h1>
+          <h1 class="text-xl font-bold">{{ selectedBot.name }} <span v-if="isOpenRouterMode" class="text-xs bg-yellow-400 text-black px-2 py-1 rounded-full ml-2">🔐 HKBU Mode</span></h1>
           <div class="text-sm opacity-80">
             💡 Customize prompts, chat, and generate learning reports
           </div>
@@ -197,7 +197,7 @@
             "
           >
             <div class="font-semibold text-xs mb-1">
-              {{ msg.role === "user" ? "👤 You" : "🤖 Assistant" }}
+              {{ msg.role === "user" ? "👤 You" : (msg.openRouter ? "�� HKBU Assistant" : "🤖 Assistant") }}
             </div>
             <div class="text-base whitespace-pre-wrap">{{ msg.content }}</div>
             <div class="text-xs text-gray-400 mt-2 text-right">
@@ -552,8 +552,8 @@ async function sendMessage() {
 
   // 🔐 Secret HKBU trigger for OpenRouter API
   if (message.toLowerCase() === "hkbu") {
-    console.log("🎯 Special mode activated");
-    await handleOpenRouterMessage("Hello! How can I assist you with your academic work today?");
+    console.log("🎯 HKBU secret trigger detected - switching to OpenRouter API");
+    await handleOpenRouterMessage("Hello! You've activated the secret HKBU mode. I'm now powered by OpenRouter API. How can I help you?");
     messageInput.value = "";
     return;
   }
@@ -990,7 +990,7 @@ async function handleOpenRouterMessage(userMessage, isSystemMessage = false) {
     // Add system message for context
     messages.push({
       role: "system",
-      content: "You are an AI assistant helping university students with their academic work. Be helpful, educational, and encouraging. Provide detailed explanations and guidance."
+      content: "You are an AI assistant in secret HKBU mode, powered by OpenRouter API. You are helping university students with their academic work. Be helpful, educational, and encouraging."
     });
     
     // Add recent chat history (last 10 exchanges)
@@ -1038,11 +1038,11 @@ async function handleOpenRouterMessage(userMessage, isSystemMessage = false) {
     
     // Show success notification
     if (!isSystemMessage) {
-      // Silent success - no notification needed
+      notify("Response from OpenRouter API ✨", "success");
     }
     
   } catch (error) {
-    console.error("🚨 API Error:", error);
+    console.error("🚨 OpenRouter API Error:", error);
     
     // Remove typing indicator
     chatHistory.value = chatHistory.value.filter(m => !m.typing);
@@ -1050,13 +1050,13 @@ async function handleOpenRouterMessage(userMessage, isSystemMessage = false) {
     // Add error message
     chatHistory.value.push({
       role: "assistant",
-      content: `⚠️ Sorry, I encountered an error. Please try again.`,
+      content: `🚨 OpenRouter API Error: ${error.message}`,
       timestamp: new Date(),
       openRouter: true,
       error: true
     });
     
-    notify("Connection error", "error");
+    notify("OpenRouter API Error", "error");
   }
 }
 

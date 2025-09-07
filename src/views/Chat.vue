@@ -83,37 +83,17 @@
         </div>
 
         <!-- Token Usage Counter -->
+        <!-- Session Token Counter -->
         <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h3 class="font-semibold text-blue-800 mb-3">📊 Token Usage</h3>
-          <div class="space-y-2">
-            <div class="flex justify-between text-sm">
-              <span class="text-gray-600">Session Total:</span>
-              <span class="font-mono font-semibold text-blue-700">
-                {{ formatNumber(sessionTokens) }}
-              </span>
-            </div>
-            <div class="flex justify-between text-sm">
-              <span class="text-gray-600">Monthly Limit ({{ model }}):</span>
-              <span class="font-mono text-gray-500">
-                {{ formatNumber(getCurrentModelLimit()) }}
-              </span>
-            </div>
-            <div class="w-full bg-gray-200 rounded-full h-1.5 mt-2">
-              <div
-                class="bg-blue-500 h-1.5 rounded-full transition-all duration-300"
-                :style="{ width: getUsagePercentage() + '%' }"
-              ></div>
-            </div>
-            <div class="text-xs text-gray-500 text-center">
-              Session usage only • Resets on new session
-            </div>
-            <!-- Test Button -->
-            <button
-              @click="testTokenCounter"
-              class="w-full mt-2 px-3 py-1 text-xs bg-green-100 hover:bg-green-200 text-green-700 rounded border border-green-300"
-            >
-              🧪 Test Counter (+100 tokens)
-            </button>
+          <h3 class="font-semibold text-blue-800 mb-2">📊 Session Tokens</h3>
+          <div class="flex justify-between text-sm">
+            <span class="text-gray-600">Total Used:</span>
+            <span class="font-mono font-semibold text-blue-700">
+              {{ formatNumber(sessionTokens) }}
+            </span>
+          </div>
+          <div class="text-xs text-gray-500 mt-1">
+            Resets on new session • Included in reports
           </div>
         </div>
 
@@ -262,6 +242,7 @@
       :assistantCount="assistantCount"
       :botName="selectedBot.name"
       @close="showReport = false"
+      :sessionTokens="sessionTokens"
     />
     <div class="fixed top-5 right-5 space-y-2 z-50">
       <div
@@ -356,16 +337,6 @@ const sessionTokens = ref(0);
 // 🔐 OpenRouter (Secret HKBU mode) state
 const isOpenRouterMode = ref(false);
 const openRouterHistory = ref([]);
-const MODEL_LIMITS = {
-  "gpt-4.1": 3000000,
-  "gpt-4.1-mini": 15000000,
-  "gpt-4.1-turbo": 3000000,
-  "gpt-3.5-turbo": 15000000,
-  "gpt-5": 3000000,
-  "gpt-5-mini": 15000000,
-  o1: 400000,
-  "o3-mini": 5500000,
-};
 
 // Add conversation state management
 const conversationState = ref({
@@ -1079,15 +1050,7 @@ function formatNumber(num) {
   return num.toString();
 }
 
-function getCurrentModelLimit() {
-  return MODEL_LIMITS[model.value] || 0;
-}
 
-function getUsagePercentage() {
-  const limit = getCurrentModelLimit();
-  if (limit === 0) return 0;
-  return Math.min((sessionTokens.value / limit) * 100, 100);
-}
 
 function updateTokenCounter(tokens) {
   console.log(

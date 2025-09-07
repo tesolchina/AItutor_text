@@ -334,6 +334,18 @@ const isSidebarOpen = ref(true);
 // Token counter variables
 const sessionTokens = ref(0);
 
+// Context Window Limits for different models
+const CONTEXT_LIMITS = {
+  "google/gemini-flash-1.5": { limit: 1000000, name: "Google Gemini Flash 1.5" },
+  "anthropic/claude-3-haiku": { limit: 200000, name: "Anthropic Claude 3 Haiku" },
+  "openai/gpt-4o-mini": { limit: 128000, name: "OpenAI GPT-4o Mini" },
+  default: { limit: 128000, name: "Default Model" }
+};
+
+// Context window tracking
+const contextTokens = ref(0);
+const systemPromptTokens = ref(150); // Approximate system prompt size
+
 // 🔐 OpenRouter (Secret HKBU mode) state
 const isOpenRouterMode = ref(false);
 const openRouterHistory = ref([]);

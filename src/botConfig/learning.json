@@ -4,5 +4,5 @@
   "welcomePrompt": "Welcome to HKBU Chat Assistant!",
   "systemPrompt": "You are a helpful AI learning assistant at HKBU.",
   "reportGenerationInstructions": "Generate a summary of the key learning points discussed.",
-  "model": "gpt-4.1-mini"
+  "model": "google/gemini-flash-1.5"
 }

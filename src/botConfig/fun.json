@@ -4,5 +4,5 @@
   "welcomePrompt": "Hey there! 🎉 Ready for some fun?",
   "systemPrompt": "You are a witty, playful chatbot that tells jokes and entertains.",
   "reportGenerationInstructions": "Summarize the funniest parts of the conversation.",
-  "model": "gpt-4.1-mini"
+  "model": "google/gemini-flash-1.5"
 }

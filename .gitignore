@@ -1,38 +1,34 @@
-# API Keys and sensitive data
-APIkey.txt
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-env/
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-*.egg-info/
-.installed.cfg
-*.egg
+# Ignore all .log files except shared-logs/debug.log
+*.log
+!shared-logs/debug.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 
-# Virtual Environment
-venv/
-ENV/
+node_modules
+dist
+dist-ssr
+*.local
 
-# VS Code
-.vscode/
-*.code-workspace
-.history/
-
-# macOS
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
 .DS_Store
-.AppleDouble
-.LSOverride
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Local environment variables
+.env.local

@@ -1,0 +1,105 @@
+[2025-09-03 Debug Log - COMPLETED]
+
+Issue Investigation and Solution Implementation:
+
+1. Current Status:
+   - Branch: main (merged from fix/conversational-memory)
+   - Issue: RESOLVED - Conversation context loss during topic discussion
+   - Solution: Context embedding in message content and system prompt
+
+2. Previous Test Results:
+   Test Case 1 (07:40:54):
+   - Topic: "AI will replace language teachers"
+   - Failed: Lost context after topic input
+   
+   Test Case 2 (07:45:39):
+   - Topic: "climate change is a hoax"
+   - Failed: Same context loss issue
+   
+   Test Case 3 (07:59:58) - After Initial Implementation:
+   - Topic: "climate change is a hoax"
+   - Failed: Still losing context despite state management
+   - Issue: "It looks like you've shared a very brief statement" response shows context loss
+
+3. Final Solution Implementation:
+   a) Client-side state tracking:
+      - Tracking conversation mode: welcome, menu, brainstorm, review, feedback
+      - Storing topic and conversation step for context continuity
+      - Maintaining state history for error recovery
+   
+   b) Message content augmentation:
+      - Adding explicit context markers in user messages
+      - Format: `[CONTINUING BRAINSTORMING ON TOPIC: "topic"] user message`
+      - Ensures context persistence even with stateless API
+   
+   c) System prompt enhancement:
+      - Injecting conversation context directly into system prompt
+      - Adding explicit instructions about the current topic
+      - Preventing repeated topic requests
+   
+   d) API integration:
+      - Using direct URL to smartlessons-production.up.railway.app
+      - Removed dependency on environment variables
+      - Simplified deployment process
+
+4. Final Testing (13:45:22):
+   Test Case 4:
+   - Topic: "The future of remote work"
+   - Context retention: ✅ Bot remembers topic throughout conversation
+   - Follow-up questions: ✅ Bot correctly contextualizes follow-up responses
+   - Topic transitions: ✅ Bot handles changes in conversation flow appropriately
+   
+   Test Case 5:
+   - Topic: "Effects of social media on mental health"
+   - Context retention: ✅ Bot maintains discussion context
+   - Complex exchanges: ✅ Bot builds on previous responses without repeating topic questions
+   - Error handling: ✅ Gracefully recovers from ambiguous inputs
+
+5. Key Insights:
+   - LLM-based APIs often require explicit context in message content
+   - Embedding context in both system prompt and messages provides redundancy
+   - Client-side state management is critical for stateless APIs
+   - Message augmentation is more reliable than separate context parameters
+
+[SOLUTION DEPLOYED]
+The conversation memory issue has been successfully resolved and the fix has been deployed to both the fix/conversational-memory branch and the main branch. The application now maintains context throughout brainstorming sessions and other conversation modes.
+
+Git Operations:
+1. Successfully resolved merge conflicts
+2. Completed rebase onto deb4828
+3. Force pushed to fix/conversational-memory branch
+4. Fast-forward merged into main branch
+5. Pushed changes to main branch
+
+The solution is now live in production and has been tested with real user conversations.
+
+
+[2025-09-03 Markdown & Connect Button Debug Log]
+
+Issue: After adding markdown rendering and widening the chat area, the Connect button and all UI event handlers stopped working.
+
+Symptoms:
+- Connect button did not trigger any notification or debug log.
+- No visible errors in the UI, but no connection was possible.
+- Other UI actions (e.g., Clear) also failed.
+
+Investigation:
+- Confirmed that the Connect button was enabled and the function was present.
+- Added debug logs and notifications to the start of connectAPI, but nothing appeared.
+- Checked the browser console for errors; found none directly related to the button.
+- Compared recent changes: markdown rendering, chat width, and template edits.
+
+Root Cause:
+- A stray <div> tag was accidentally left in the chat message rendering template, breaking Vue's template parsing and event system.
+- This caused all event handlers in the component to silently fail.
+
+Fix:
+- Removed the extra <div> so the chat message container is valid Vue template syntax.
+- Reloaded the app; Connect button and all UI actions now work as expected.
+- Markdown rendering and chat width improvements remain functional.
+
+Lesson:
+- Even a single template syntax error in Vue can break all reactivity and event handling in a component, with no clear error in the UI.
+- Always check for stray tags or invalid template structure after large template edits.
+
+Status: FIXED and merged to main.

@@ -1,108 +1,13 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Audio Tutor UI</title>
-    <link rel="stylesheet" href="css/styles.css">
-</head>
-<body>
-    <div id="app-container">
-        <h1>English Tutor Chat</h1>
-        
-        <button id="settings-toggle">⚙️</button>
-        
-        <div id="settings-panel">
-            <button id="settings-close">×</button>
-            <h2>Settings</h2>
-            
-            <div class="settings-section">
-                <h3>Language</h3>
-                <select id="language-selector">
-                    <option value="en-US">English</option>
-                    <option value="zh-CN">Mandarin Chinese</option>
-                    <option value="zh-HK">Cantonese</option>
-                </select>
-                <p>Select the language you'll be speaking in.</p>
-            </div>
-            
-            <div class="settings-section">
-                <h3>Model Selection</h3>
-                <select id="model-selector">
-                    <!-- Will be populated from backend -->
-                </select>
-                <p>Select a faster model for more responsive conversation.</p>
-            </div>
-            
-            <div class="settings-section">
-                <h3>System Prompt</h3>
-                <textarea id="system-prompt"></textarea>
-                <button id="save-prompt" class="btn-primary">Save Prompt</button>
-                <p>Customize how the tutor responds and what style or tone it uses.</p>
-            </div>
-            
-            <div class="settings-section">
-                <h3>Export Chat</h3>
-                <div class="settings-buttons">
-                    <button id="export-chat" class="btn-accent">Export as Markdown</button>
-                    <button id="copy-chat" class="btn-primary">Copy to Clipboard</button>
-                </div>
-                <p>Save your conversation for future reference.</p>
-            </div>
-        </div>
-        
-        <div id="avatar-container">
-            <div id="owl-icon" class="owl-idle">🦉</div>
-            <div id="status-indicator">Idle</div>
-            
-            <!-- Sound waves (for listening) -->
-            <div class="sound-waves">
-                <div class="wave wave-1"></div>
-                <div class="wave wave-2"></div>
-                <div class="wave wave-3"></div>
-            </div>
-            
-            <!-- Thinking animation -->
-            <div class="thinking-dots">
-                <span class="dot dot-1"></span>
-                <span class="dot dot-2"></span>
-                <span class="dot dot-3"></span>
-            </div>
-        </div>
-        
-        <!-- Interim results display -->
-        <div id="interim-results"></div>
-        
-        <div id="chat-container">
-            <div id="transcript"></div>
-        </div>
-        
-        <div id="bottom-controls">
-            <button id="startBtn" class="btn-primary">Start Talking</button>
-            <button id="stopTalkingBtn" class="btn-danger" style="display: none;">Stop Talking</button>
-            <button id="stopSpeakingBtn" class="btn-accent" disabled>Stop Tutor Speaking</button>
-        </div>
-        
-        <!-- Clipboard Copy Modal -->
-        <div id="clipboard-modal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3 style="margin: 0;">Chat History</h3>
-                    <button id="close-modal" class="modal-close">×</button>
-                </div>
-                <textarea id="chat-text" readonly></textarea>
-                <div style="display: flex; justify-content: flex-end; gap: 10px;">
-                    <button id="copy-to-clipboard" class="btn-primary">Copy to Clipboard</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Load JS modules -->
-    <script src="js/api.js"></script>
-    <script src="js/speech.js"></script>
-    <script src="js/tts.js"></script>
-    <script src="js/ui.js"></script>
-    <script src="js/settings.js"></script>
-    <script src="js/main.js"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bytewise</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
 </html>
